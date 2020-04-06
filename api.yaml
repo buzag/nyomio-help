@@ -1,11 +1,11 @@
 swagger: '2.0'
 info:
-  description: This is a simple API
+  description: Nyomi Api
   version: 1.0.0
-  title: Simple Inventory API
+  title: Nyomi Beta API
   # put the contact info for your development or API team
   contact:
-    email: you@your-company.com
+    email: info@nyomi.com
 
   license:
     name: Apache 2.0
@@ -13,12 +13,12 @@ info:
 
 # tags are used for organizing operations
 tags:
-- name: admins
-  description: Secured Admin-only calls
-- name: developers
-  description: Operations available to regular developers
 - name: trackers
   description: Operations with trackers
+- name: locations
+  description: Operations with locations
+- name: user
+  description: Operations with user
 
 paths:
   /trackers:
@@ -33,70 +33,452 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/Trackers'
-
-
-  /inventory:
+            
+  /locations:
     get:
       tags:
-      - developers
-      summary: searches inventory
-      operationId: searchInventory
-      description: |
-        By passing in the appropriate options, you can search for
-        available inventory in the system
+        - locations
+      description: Visszaadja a felhasznalo locationjait
       produces:
-      - application/json
-      parameters:
-      - in: query
-        name: searchString
-        description: pass an optional search string for looking up inventory
-        required: false
-        type: string
-      - in: query
-        name: skip
-        description: number of records to skip for pagination
-        type: integer
-        format: int32
-        minimum: 0
-      - in: query
-        name: limit
-        description: maximum number of records to return
-        type: integer
-        format: int32
-        minimum: 0
-        maximum: 50
+        - application/json
       responses:
         200:
-          description: search results matching criteria
+          description: OK
           schema:
             type: array
             items:
-              $ref: '#/definitions/InventoryItem'
-        400:
-          description: bad input parameter
+              $ref: '#/definitions/LocationGroup'
+              
+  /phoneLocation:
     post:
       tags:
-      - admins
-      summary: adds an inventory item
-      operationId: addInventory
-      description: Adds an item to the system
+        - locations
+      description: Itt kuldjuk fel a felhasznalo helyzetet2
       consumes:
       - application/json
       produces:
       - application/json
       parameters:
       - in: body
-        name: inventoryItem
-        description: Inventory item to add
+        name: myLocation
+        description: A felhasznalo helyzete
         schema:
-          $ref: '#/definitions/InventoryItem'
+          $ref: '#/definitions/LatLon'
       responses:
-        201:
-          description: item created
-        400:
-          description: invalid input, object invalid
-        409:
-          description: an existing item already exists
+        200:
+          description: OK
+          
+  /login:
+    post:
+      tags:
+       - user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/LoginData'
+      responses:
+        200:
+          description: OK
+          headers:
+            csodaToken:
+              type: string
+              description: Csodatoken
+
+          schema:
+            type: object
+            properties:
+              accessToken:
+                type: string
+                example: sdaisdiauytd56456456as4d56s4ddas564as56d4asd
+    
+          
+  /profile:
+    get:
+      tags:
+       - user
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Profile'
+        403:
+          description: Auth error
+    delete:
+      tags:
+       - user
+      responses:
+        200:
+          description: OK
+      
+      
+      
+  /termsandconditions:
+    get:
+      tags:
+        - user
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/TermsAndConditions'
+          
+          
+  /registerdata:
+    post:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+            $ref: '#/definitions/RegisterData'
+      responses:
+        200:
+          description: OK
+        403:
+          description: Ilyen felhasznalo mar letezik
+          
+          
+  /lostpassword:
+    post:
+      tags:
+       - user
+      responses:
+        200:
+          description: Ment az email
+        403:
+          description: A felhasznalo nincs belepve
+          
+  /accountImage:
+    put:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        description: Image url vagy még nem tudni
+        schema:
+          type: object
+          required:
+            - image
+          properties:
+            image:
+              type: string
+      responses:
+        200:
+          description: OK
+          
+  /accountEmail:
+    put:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        description: Email
+        schema:
+          type: object
+          required:
+            - email
+          properties:
+            email:
+              type: string
+      responses:
+        200:
+          description: OK
+          
+  /accountName:
+    put:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        description: Name
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+      responses:
+        200:
+          description: OK
+          
+          
+  /password:
+    put:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        description: Change password
+        schema:
+            $ref: '#/definitions/PasswordChange' 
+      responses:
+        200:
+          description: OK
+        445:
+          description: Nem jo
+          
+  /googleLogin:
+    put:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        description: Store google credentials
+        schema:
+            $ref: '#/definitions/SocialLogin' 
+      responses:
+        200:
+          description: OK
+          
+  /facebookLogin:
+    put:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        description: Store facebook credentials
+        schema:
+            $ref: '#/definitions/SocialLogin' 
+      responses:
+        200:
+          description: OK
+          
+          
+  /microsoftLogin:
+    put:
+      tags:
+       - user
+      parameters:
+      - in: body
+        name: body
+        description: Store microsoft credentials
+        schema:
+            $ref: '#/definitions/SocialLogin' 
+      responses:
+        200:
+          description: OK
+          
+  /logout:
+    post:
+      tags:
+       - user
+      responses:
+        200:
+          description: OK
+          
+          
+          
+  /subscriptions:
+    get:
+      tags:
+      - subscription
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Subscription'
+          
+    
+  /countries:
+    get:
+      tags:
+        - subscription
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Country'
+              
+              
+  /address:
+    put:
+      summary: Szerintem itt ez keves lesz, mert tobb cimet is tudni kell megadni es szerkeszteni, illetve egy torles sem artana
+      description: Szerintem itt ez keves lesz, mert tobb cimet is tudni kell megadni es szerkeszteni, illetve egy torles sem artana
+      tags:
+       - subscription
+      parameters:
+      - in: body
+        name: body
+        description: Address
+        schema:
+          $ref: '#/definitions/Address' 
+      responses:
+        200:
+          description: OK
+          
+          
+  /accountapis:
+    get:
+      tags:
+        - account
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/AccountApi'
+    put:
+      tags:
+        - account
+      parameters:
+      - in: body
+        name: body
+        description: AccountApi
+        schema:
+          $ref: '#/definitions/AccountApi' 
+      responses:
+        200:
+          description: OK
+      
+      
+  /trackerDetails/{id}:
+    get:
+      tags:
+        - trackerDetails
+      parameters:
+        - name: id
+          in: path
+          description: Tracker id
+          type: integer
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/TrackerDetail'
+            
+            
+  /trackerDetails/{id}/name:
+    put:
+      tags:
+        - trackerDetails
+      parameters:
+        - name: id
+          in: path
+          description: Tracker id
+          type: integer
+          required: true
+        - in: body
+          name: body
+          required: true
+          description: Name
+          schema:
+            type: object
+            required:
+            - name
+            properties:
+              name:
+                type: string
+      responses:
+        200:
+          description: OK
+        403:
+          description: Denied
+        404:
+          description: Tracker not found
+          
+          
+  /trackerDetails/{id}/image:
+    put:
+      tags:
+        - trackerDetails
+      parameters:
+        - name: id
+          in: path
+          description: Tracker id
+          type: integer
+          required: true
+        - in: body
+          name: body
+          required: true
+          description: Name
+          schema:
+            type: object
+            required:
+            - image
+            properties:
+              image:
+                type: string
+      responses:
+        200:
+          description: OK
+        403:
+          description: Denied
+        404:
+          description: Tracker not found
+          
+          
+  /tracker/disable/{id}:
+    post:
+      tags:
+        - trackerAdvanced
+      parameters:
+        - name: id
+          in: path
+          description: Tracker id
+          type: integer
+          required: true
+      responses:
+        200:
+          description: OK
+          
+          
+  
+  /help/advancedmapcontrols:
+    get:
+      tags:
+        - help
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Help'
+            
+  /help/api:
+    get:
+      tags:
+        - help
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Help'
+            
+  /help/sharedTrackers:
+    get:
+      tags:
+        - help
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Help'
+        
+      
+      
+      
+  
+
+
+ 
           
 definitions:
  
@@ -192,45 +574,360 @@ definitions:
         type: number
         format: double
         example: "47.3434"
-
-
-  InventoryItem:
-    type: object
+        
+  Location:
     required:
     - id
     - name
-    - manufacturer
-    - releaseDate
+    - LatLonglist
     properties:
       id:
-        type: string
-        format: uuid
-        example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        type: integer
       name:
         type: string
-        example: Widget Adapter
-      releaseDate:
-        type: string
-        format: date-time
-        example: 2016-08-29T09:12:33.001Z
-      manufacturer:
-        $ref: '#/definitions/Manufacturer'
-  Manufacturer:
+        example: A telephelyem egy darabja
+      raduis:
+        type: number
+        format: double
+        example: "23.5"
+        description: In meters
+      LatLonglist:
+        type: array
+        items:
+          $ref: '#/definitions/LatLon'
+          
+  LocationGroup:
     required:
-    - name
+      - id
+      - name
+      - color
+      - members
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+        example: A teljes telephelyem
+      color:
+        type: string
+        example: '#FF763B'
+      members:
+        type: array
+        items:
+          $ref: '#/definitions/Location'
+          
+          
+  
+  Profile:
+    required:
+     - name
+     - email
+     - profileImage
+     - accountType
     properties:
       name:
         type: string
-        example: ACME Corporation
-      homePage:
+        example: Kormos Adam
+      email:
         type: string
-        format: url
-        example:  https://www.acme-corp.com
-      phone:
+        example: kormos.adam.ios.random@gmail.com
+      phoneNumber:
         type: string
-        example: 408-867-5309
+        example: "+3630542394"
+      profileImage:
+        type: string
+        format: uri
+        example: "http://demo.schrott.hu/001.jpg"
+      nickname:
+        description: Ezt a felhasznalo megszolitasa miatt talaltuk ki
+        type: string
+        example: Adi
+      accountType:
+        type: integer
+        description: Ide intet talaltunk ki, amugy a role lenne (user, admin, owner, stb)
+        example: 2
+      facebookToken:
+        type: string
+        example:
+      googleToken:
+        type: string
+        example: adas8asd8asyd8as7d
+      microsoftToken:
+        type: string
+        example: 
+        
+  LoginData:
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+        example: kormosadam
+      password:
+        type: string
+        example: kicsikukac69
+        
+  TermsAndConditions:
+    properties:
+      htmlString:
+        type: string
+        example: '<html><body><p>Hello, world!</p></body></html>'
+      plainString:
+        type: string
+        example: Hello, world!
+        
+  Help:
+    properties:
+      htmlString:
+        type: string
+        example: '<html><body><p>Here to help in html</p></body></html>'
+      plainString:
+        type: string
+        example: Here to help in plain text
+      url:
+        type: string
+        example: "http:www.inetrack/help/trackersharing.html"
+        
+  
+        
+  RegisterData:
+    required:
+      - name
+      - email
+      - telephone
+      - password
+    properties:
+      name:
+        type: string
+        example: Kormos Adam
+      email:
+        type: string
+        example: kormos.adam.ios.random@gmail.com
+      telephone:
+        type: string
+        example: "+3630542394"
+      password:
+        type: string
+        format: password
+        example: "kicsikukac69"
+        
+  PasswordChange:
+    required:
+    - oldPassword
+    - newPassword
+    properties:
+      oldPassword:
+        type: string
+        example: "kicsikukac69"
+      newPassword:
+        type: string
+        example: "kicsikukac68"
+        
+  SocialLogin:
+    required:
+    - token
+    - email
+    properties:
+      token:
+        type: string
+        example: "lkj4j534j5lk3j45lk45"
+      email:
+        type: string
+        example: "kormos.adam.ios.randrom@gmail.com"
+        
+  Address:
+    required:
+    - companyName
+    - city
+    - addressLine1
+    - zip
+    - country
+    properties:
+      companyName:
+        type: string
+        example: "Inetack"
+      city:
+        type: string
+        example: "Budapest"
+      addressLine1:
+        type: string
+        example: "Honved utca 8"
+      addressLine2:
+        type: string
+        example: "I/2"
+      zip:
+        type: string
+        example: "1054"
+      country:
+        $ref: '#/definitions/Country'
+      taxid:
+        type: string
+        example: "3k33453"
+        
+      
+  Country:
+    required:
+    - countryId
+    - countryName
+    properties:
+      countryId:
+       type: integer
+       example: 3
+      countryName:
+        type: string
+        example: Niger
+      
+  Subscription:
+    required:
+      - BillingAddress
+      - shippingAddress
+      - paymentHistory
+    properties:
+      BillingAddress:
+        $ref: '#/definitions/Address'
+      shippingAddress:
+        $ref: '#/definitions/Address'
+      paymentHistory:
+        type: array
+        items:
+          $ref: '#/definitions/Location'
+      paymentDetails:
+        type: string
+        example: "Jol kifizetted a pro csomagot. Vettel egy csomo mindent."
+      buy_upgrade_url:
+        type: string
+        example: "https://inetrack.hu/"
+        
+  AccountApi:
+    required:
+     - apiToken
+     - validFrom
+     - validTo
+    properties:
+      apiToken:
+        type: string
+        example: sdfsdf6767sd57sd5sd
+      validFrom:
+        type: integer
+        format: date
+        example: 1232344323
+      validTo:
+        type: integer
+        format: date
+        example: 1232344323
+        
+  TrackerDetail:
+    required:
+    - id
+    - name
+    - lat
+    - lon
+    properties:
+      id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: A sajat autom
+      description:
+        type: string
+        example: "Ez a saját autóban lévő tracker, amit nagyon szeretek"
+      lat:
+        type: number
+        format: double
+        example: "47.3434"
+      lon:
+        type: number
+        format: double
+        example: "19.3434"
+      image:
+        type: string
+        format: uri
+        example: http://demo.schrott.hu/car001.png
+      validFrom:
+        type: integer
+        format: date
+        example: 1232344323
+      validTo:
+        type: integer
+        format: date
+        example: 1232344323
+      group:
+        $ref: '#/definitions/TrackerGroup'
+      sharings:
+        type: array
+        items:
+          $ref: '#/definitions/Tracker'
+          
+          
+  TransferOwnership:
+    required:
+    - tracker
+    - email
+    properties:
+      tracker:
+        $ref: '#/definitions/Tracker'
+      email:
+        type: string
+        example: "kormos.adam.ios.random@gmail.com"
+        
+  ExportDataDetails:
+    required:
+    - trackerId
+    - exportType
+    - timeFrom
+    properties:
+      trackerId:
+        type: integer
+        example: 3
+      exportType:
+        type: string
+        example: "csv"
+      timeFrom:
+        type: integer
+        format: date
+        example: 1232344323
+      timeTo:
+        type: integer
+        format: date
+        example: 1232344323
+        
+  ChangeTrackerGroup:
+    required:
+    - tracker
+    - groupFromId
+    - groupToId
+    properties:
+      tracker:
+        $ref: '#/definitions/Tracker'
+      groupFromId:
+        type: integer
+        example: 6
+      groupToId:
+        type: integer
+        example: 9
+        
+        
+  Result:
+    required:
+      - code
+      - description
+    properties:
+      code:
+        type: integer
+        example: 404
+      description:
+        type: string
+        example: A keresett tracker nem talalhato
+        
+
 # Added by API Auto Mocking Plugin
 host: virtserver.swaggerhub.com
 basePath: /kormos.adam.ios/probal2/1.0.0
+# schemes:
+#  - http
+# Added by API Auto Mocking Plugin
 schemes:
  - https
+ - http
